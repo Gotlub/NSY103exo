@@ -39,7 +39,6 @@ int main(void)
     {
         
         wait(&status);
-        printf("coucou \n");
         fichier = fopen("tube.txt", "r");
         if(fichier==NULL){
             printf("Erreur lors de l'ouverture d'un fichier");
