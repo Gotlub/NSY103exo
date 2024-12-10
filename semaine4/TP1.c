@@ -1,65 +1,71 @@
-#include <stdio.h>
-#include <string.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
 #include <unistd.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
+#include <fcntl.h>
+#include <signal.h>
 #include <sys/wait.h>
-#define MAX 99
+//pour les macros
+#include <sys/ioctl.h>
 
-// structure for message queue
-struct mesg_buffer {
-    long mesg_type;
-    char mesg_text[MAX + 1];
-} message;
-
-int main()
+int main (void)
 {
-    key_t key;
-    int msgid;
+    int buf ;
+    int tube [2] ;
+    int err;
+    int bytesAvailable;
     pid_t pid;
+    int status;
 
-    // ftok to generate unique key
-    key = ftok("TD1.c", 65);
-    pid = fork();
-    if (pid == 0)
+    pipe (tube) ;
+    if (pipe(tube)==-1)
     {
-        int k;
-        int total = 0;
-        // msgget creates a message queue
-        //  or connect at an existing message queue
-        // and returns identifier
-        msgid = msgget(key, 0666 | IPC_CREAT);
-        do
+        printf("pipe failed\n");
+        return 1;
+    }
+    pid = fork();
+    if (pid == -1)
+    {
+        perror("fork");
+        return 1;
+    }
+
+    if(pid == 0)
+    {
+        int i = 0;
+        int random;
+        while(1)
         {
-            // msgrcv to receive message
-            msgrcv(msgid, &message, sizeof(message), 1, 0);
-            k = 0;
-            while(message.mesg_text[k] != 10 && message.mesg_text[k] != 0)
-            {
-                k++;
-            }
-            total += k;
-            if(message.mesg_text[0] != 10)
-                printf("\nData Received is : %s \n", 
-                            message.mesg_text);
-        } while (message.mesg_text[0] != 10);
-        printf("Amont of chars: %d \n", total);
-        
-    } else {
-        msgid = msgget(key, 0666 | IPC_CREAT);
-        message.mesg_type = 1;
-        do
+            sleep(0.01);
+            random = rand() % 101;
+            write(tube[1], &random, sizeof(int));
+            i++;
+        }
+    }
+    if(pid > 1)
+    {
+        int tailleTube = rand() % 100 * 4;
+        do {
+            err = ioctl(tube[0], FIONREAD, &bytesAvailable);
+        }while (bytesAvailable < tailleTube);
+        printf("taille du pipe :  %d\n" ,bytesAvailable);
+        kill(pid, SIGSTOP );
+        int val = 0;
+        for(int k = 0; k < bytesAvailable / sizeof(int) + 4; k++)
         {
-            printf("Enter your message, empty for exit : ");
-            fgets(message.mesg_text,MAX,stdin);
-            // msgsnd to send message
-            msgsnd(msgid, &message, sizeof(message), 0);
-        // 10 is the ending methode of fgets
-        } while (message.mesg_text[0] != 10);
-        wait(NULL);
-        printf("END\n");
-        // to destroy the message queue
-        msgctl(msgid, IPC_RMID, NULL);
+            read(tube[0], &buf, sizeof(int));
+            printf(" %d", buf);
+        }
+        printf("taille du pipe :  %d\n" ,bytesAvailable);
+        sleep(1);
+        kill(pid, SIGCONT);
+        do {
+            err = ioctl(tube[0], FIONREAD, &bytesAvailable);
+        }while (bytesAvailable < tailleTube);
+        kill(pid, SIGSTOP );
+        printf("taille du pipe :  %d, taille du tube %d \n" ,bytesAvailable, tailleTube);
+        kill(pid, 9);
     }
     return 0;
+}
