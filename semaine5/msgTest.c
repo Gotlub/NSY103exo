@@ -12,13 +12,10 @@ struct mesg_buffer {
 
 int main()
 {
-    key_t key;
     int msgid;
     pid_t pid;
 
     msgid = msgget(IPC_PRIVATE, 0666 | IPC_CREAT);
-    // ftok to generate unique key
-    key = ftok("msgTest.c", 65);
     pid = fork();
     if (pid == 0)
     {
