@@ -3,6 +3,7 @@
 #include <sys/msg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <string.h>
@@ -16,23 +17,23 @@ struct msgbuf
     char texte[256];
 };
 
+
 void fils(void)
 {
-    int nb = 0;
+	int nb = 0;
     int somme = 0;
-    struct msgbuf rcvbuf;
-    do
-    {
-        msgrcv(id, &rcvbuf, sizeof(struct msgbuf), 0, 0);
-        if(rcvbuf.texte[0] != 10 && rcvbuf.texte[0] != 1)
-        {
-            //sans compter le char de fin de saisie 10
-            somme += strlen(rcvbuf.texte) - 1;
-            nb++;
-        }
-    } while(rcvbuf.texte[0] != 1);
-    printf("Nombre total d'octets lus : %d, nombre de message : %d \n", somme, nb);
-    exit(0);
+	struct msgbuf rcvbuf;
+	bool nonEmptyMessage=true;
+	do
+	{
+		msgrcv(id,&rcvbuf,sizeof(struct msgbuf),0,0);
+		nonEmptyMessage=rcvbuf.texte[0]!=1;
+        nb = strlen(rcvbuf.texte);
+		if (nonEmptyMessage)
+			somme+=nb;
+	} while(nonEmptyMessage);
+	printf("Nombre total d'octets lus : %d\n",somme);
+	exit(0);
 }
 
 void main(void)
@@ -43,15 +44,15 @@ void main(void)
     if(fork() == 0)
         fils();
     mybuf.type = 0;
-    do
+    printf("Entre puis ctrl + d pour terminer la saisie :\n");
+    while(fgets(mybuf.texte, 256, stdin))
     { 
-        printf("Enter your message, empty for exit : \n");
-        fgets(mybuf.texte, 256, stdin);
         msgsnd(id, &mybuf, sizeof(struct msgbuf), 0);
-    //  10 = Line Feed (saut de ligne), la fin de saisie de stdin 
-    }while(mybuf.texte[0] != 10);
-    // si le premier message a pour unique char 0, chez moi le programme plante a la reception
-    // donc 1 est utilisé a la place
+    }
+    // si le premier message a un unique char, avec 0 en deuxième message
+    // chez moi le programme plante a la reception 
+    // ( mybuf.texte constitué que de 0 ?)
+    //  1 est utilisé a la place
     mybuf.texte[0] = 1;
     msgsnd(id, &mybuf, sizeof(struct msgbuf), 0);
     wait(NULL);
