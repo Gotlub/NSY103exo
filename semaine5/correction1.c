@@ -35,8 +35,8 @@ void fils(void)
     exit(0);
 }
 
-    void main(void)
-    {
+void main(void)
+{
     struct msgbuf mybuf;
 
     id = msgget(IPC_PRIVATE, IPC_CREAT | 0666);
