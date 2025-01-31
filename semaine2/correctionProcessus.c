@@ -35,7 +35,7 @@ int main(void)
     // _exit() ou exit() ou la valeur retournée par la fonction main() 
     r1=WEXITSTATUS(r1);
     r2=WEXITSTATUS(r2);
-    //w1 est la valleur d'un processus arreté (enfent f1), elle ne peu avoir du processus père (qui est getpid() dans f1!=0)
+    //w1 est l'indentifiant d'un processus arreté (retour de wait -> pid child f1), elle ne peu avoir du processus père (f1)
     //on ne rentre pas dans cette condition
     if(w1!=f1)
     {
