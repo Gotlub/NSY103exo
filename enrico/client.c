@@ -11,7 +11,7 @@
 int main(void)
 {
     // Déclaration de la structure sockaddr_in pour l'adresse client et serveur
-    struct sockaddr_in ClientAdr, serveurAdr;
+    struct sockaddr_in serveurAdr;
 
     // Initialisation de l'adresse du serveur
     bzero(&serveurAdr, sizeof(serveurAdr));
@@ -21,7 +21,7 @@ int main(void)
 
     int id, connectSock, i, W, R, nbre=0;
     char tableau[256] = "BONJOUR TOUT LE MONDE";        // Message à envoyer
-    socklen_t taille = sizeof(ClientAdr);        // Taille de la structure sockaddr_in
+    socklen_t taille = sizeof(serveurAdr);        // Taille de la structure sockaddr_in
 
     // Création du socket
     id = socket(PF_INET, SOCK_STREAM, 0); 
