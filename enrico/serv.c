@@ -53,7 +53,7 @@ int main(void) {
         close(idsoc);
         exit(EXIT_FAILURE);
     }
-    printf("Serveur en attente sur 127.0.0.1: %d...\n",(int)PORT);
+    printf("Serveur en attente sur 127.0.0.1: %d...\n", PORT);
     /*******************************************/
     /* Boucle principale d'attente de clients  */
     /*******************************************/
